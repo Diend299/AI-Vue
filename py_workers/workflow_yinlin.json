@@ -1,0 +1,515 @@
+{
+  "5": {
+    "inputs": {
+      "image": "pasted/image (27).png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "8": {
+    "inputs": {
+      "prompt": "person,",
+      "sam2_model": "sam2.1_hiera_large",
+      "dino_model": "GroundingDINO_SwinT_OGC (694MB)",
+      "device": "Auto",
+      "threshold": 0.3,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "SAM2Segment",
+    "_meta": {
+      "title": "SAM2 Segmentation (RMBG)"
+    }
+  },
+  "9": {
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "11": {
+    "inputs": {
+      "ckpt_name": "spicaXLIllustrious_v10.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Checkpoint加载器（简易）"
+    }
+  },
+  "12": {
+    "inputs": {
+      "lora_name": "XL-ill-呤霖【鸣潮】_v1-10.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "11",
+        0
+      ],
+      "clip": [
+        "11",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "加载LoRA"
+    }
+  },
+  "13": {
+    "inputs": {
+      "text": [
+        "19",
+        0
+      ],
+      "clip": [
+        "12",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "14": {
+    "inputs": {
+      "text": "score_4, score_5, score_6, (worst quality, low quality:1.2), (realistic, 3d, render:1.3), monochrome, sketch, blurry, bad anatomy, deformed hands, extra fingers, text, watermark",
+      "clip": [
+        "12",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "15": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": 993790820028013,
+      "steps": 25,
+      "cfg": 8,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "start_at_step": 0,
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "30",
+        0
+      ],
+      "positive": [
+        "35",
+        0
+      ],
+      "negative": [
+        "35",
+        1
+      ],
+      "latent_image": [
+        "43",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "16": {
+    "inputs": {
+      "images": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "17": {
+    "inputs": {
+      "samples": [
+        "15",
+        0
+      ],
+      "vae": [
+        "11",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "18": {
+    "inputs": {
+      "model": "wd-v1-4-swinv2-tagger-v2",
+      "threshold": 0.35,
+      "character_threshold": 0.85,
+      "replace_underscore": false,
+      "trailing_comma": false,
+      "exclude_tags": "black_background,simple_background,",
+      "tags": "1girl, solo, long_hair, breasts, looking_at_viewer, smile, bangs, gloves, dress, hair_between_eyes, bare_shoulders, jewelry, closed_mouth, standing, purple_eyes, full_body, ponytail, red_hair, hairband, earrings, black_gloves, black_footwear, mole, black_dress, high_heels, gauntlets",
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "WD14Tagger|pysssss",
+    "_meta": {
+      "title": "WD14 Tagger 🐍"
+    }
+  },
+  "19": {
+    "inputs": {
+      "string1": [
+        "20",
+        0
+      ],
+      "string2": [
+        "18",
+        0
+      ],
+      "delimiter": " "
+    },
+    "class_type": "JoinStrings",
+    "_meta": {
+      "title": "Join Strings"
+    }
+  },
+  "20": {
+    "inputs": {
+      "string": "score_9, score_8, score_7, rating_safe, source_anime, masterpiece, best quality, very aesthetic, (fine details:1.2), (highres:1.1), (extremely detailed CG:1.1), (clean lines:1.2),yangyang \\(wuthering waves\\),\\(wuthering waves\\)，"
+    },
+    "class_type": "String to Text",
+    "_meta": {
+      "title": "String to Text"
+    }
+  },
+  "24": {
+    "inputs": {
+      "ipadapter_file": "ip-adapter_sdxl_vit-h.safetensors"
+    },
+    "class_type": "IPAdapterModelLoader",
+    "_meta": {
+      "title": "IPAdapter Model Loader"
+    }
+  },
+  "26": {
+    "inputs": {
+      "clip_name": "clip_vision_vit_h.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "加载CLIP视觉"
+    }
+  },
+  "30": {
+    "inputs": {
+      "weight": 0.4,
+      "weight_type": "strong style transfer",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "K+V",
+      "model": [
+        "12",
+        0
+      ],
+      "ipadapter": [
+        "24",
+        0
+      ],
+      "image": [
+        "41",
+        0
+      ],
+      "clip_vision": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "IPAdapterAdvanced",
+    "_meta": {
+      "title": "IPAdapter Advanced"
+    }
+  },
+  "34": {
+    "inputs": {
+      "control_net_name": "xinsir-controlnet-scribble-anime-sdxl-v1.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "加载ControlNet模型"
+    }
+  },
+  "35": {
+    "inputs": {
+      "strength": 0.6,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "13",
+        0
+      ],
+      "negative": [
+        "14",
+        0
+      ],
+      "control_net": [
+        "34",
+        0
+      ],
+      "image": [
+        "36",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "应用ControlNet（旧版高级）"
+    }
+  },
+  "36": {
+    "inputs": {
+      "low_threshold": 100,
+      "high_threshold": 200,
+      "resolution": 1024,
+      "image": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "CannyEdgePreprocessor",
+    "_meta": {
+      "title": "Canny Edge"
+    }
+  },
+  "37": {
+    "inputs": {
+      "image": "pasted/image (30).png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "38": {
+    "inputs": {
+      "images": [
+        "36",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "41": {
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "Images to RGB",
+    "_meta": {
+      "title": "Images to RGB"
+    }
+  },
+  "42": {
+    "inputs": {
+      "images": [
+        "41",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "43": {
+    "inputs": {
+      "width": [
+        "48",
+        0
+      ],
+      "height": [
+        "48",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "44": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "37",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "缩放图像（像素）"
+    }
+  },
+  "48": {
+    "inputs": {
+      "image": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "50": {
+    "inputs": {
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8,
+      "samples": [
+        "15",
+        0
+      ],
+      "vae": [
+        "11",
+        2
+      ]
+    },
+    "class_type": "VAEDecodeTiled",
+    "_meta": {
+      "title": "VAE解码（分块）"
+    }
+  },
+  "51": {
+    "inputs": {
+      "model_name": "4x-UltraSharp.pth"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": {
+      "title": "加载放大模型"
+    }
+  },
+  "52": {
+    "inputs": {
+      "upscale_by": 2,
+      "seed": 415599024364639,
+      "steps": 20,
+      "cfg": 8,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.2,
+      "mode_type": "Linear",
+      "tile_width": 512,
+      "tile_height": 512,
+      "mask_blur": 8,
+      "tile_padding": 32,
+      "seam_fix_mode": "None",
+      "seam_fix_denoise": 1,
+      "seam_fix_width": 64,
+      "seam_fix_mask_blur": 8,
+      "seam_fix_padding": 16,
+      "force_uniform_tiles": true,
+      "tiled_decode": false,
+      "image": [
+        "50",
+        0
+      ],
+      "model": [
+        "11",
+        0
+      ],
+      "positive": [
+        "13",
+        0
+      ],
+      "negative": [
+        "14",
+        0
+      ],
+      "vae": [
+        "11",
+        2
+      ],
+      "upscale_model": [
+        "51",
+        0
+      ]
+    },
+    "class_type": "UltimateSDUpscale",
+    "_meta": {
+      "title": "Ultimate SD Upscale"
+    }
+  },
+  "53": {
+    "inputs": {
+      "images": [
+        "52",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "54": {
+    "inputs": {
+      "filename_prefix": "Yinlin",
+      "images": [
+        "52",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "55": {
+    "inputs": {
+      "filename_prefix": "yinlin",
+      "images": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  }
+}

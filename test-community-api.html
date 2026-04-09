@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; }
+        .success { border-color: green; background: #f0fff0; }
+        .error { border-color: red; background: #fff0f0; }
+    </style>
+</head>
+<body>
+    <h1>社区API测试</h1>
+    <button onclick="testCommunityAPI()">测试社区列表API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testCommunityAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result">正在测试...</div>';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/community/list?page=1&pageSize=5');
+                const data = await response.json();
+
+                let html = `<div class="result success">✅ API 调用成功</div>`;
+                html += `<div class="result">状态码: ${response.status}</div>`;
+                html += `<div class="result">响应数据: ${JSON.stringify(data, null, 2)}</div>`;
+
+                if (data.code === 200 && data.data && data.data.records) {
+                    html += `<div class="result success">✅ 数据格式正确，找到 ${data.data.records.length} 条记录</div>`;
+                } else {
+                    html += `<div class="result error">❌ 数据格式不正确</div>`;
+                }
+
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result error">❌ API 调用失败: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

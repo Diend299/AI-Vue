@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端社区API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; }
+        .success { border-color: green; background: #f0fff0; }
+        .error { border-color: red; background: #fff0f0; }
+        .loading { border-color: blue; background: #f0f8ff; }
+    </style>
+</head>
+<body>
+    <h1>前端社区API测试</h1>
+    <p>测试前端 resolveMediaUrl 函数和社区数据转换</p>
+
+    <button onclick="testFrontendLogic()">测试前端逻辑</button>
+    <div id="results"></div>
+
+    <script type="module">
+        // 模拟前端的 URL 解析逻辑
+        const API_ORIGIN = 'http://localhost:8080';
+
+        function resolveMediaUrl(url) {
+            if (!url || typeof url !== 'string') {
+                return '';
+            }
+            const u = url.trim();
+            if (!u) {
+                return '';
+            }
+
+            // 1. 如果已是完整 URL，直接返回
+            if (/^https?:\/\//i.test(u)) {
+                return u;
+            }
+
+            // 2. 处理协议相对 URL
+            if (u.startsWith('//')) {
+                return `${window.location.protocol}${u}`;
+            }
+
+            // 3. 🚨 关键修复：所有相对路径都必须指向后端服务器！
+            if (u.startsWith('/')) {
+                return `${API_ORIGIN}${u}`;
+            }
+
+            // 4. 处理本地路径 (D:/aip_storage/outputs/xxx.png → /api/files/xxx.png)
+            if (/^[a-z]:[/\\]/i.test(u)) {
+                const cleanPath = u.replace(/\\/g, '/').replace(/^[a-z]:[/]*aip_storage\/(?:outputs|inputs)\//i, '');
+                return `${API_ORIGIN}/api/files/${cleanPath}`;
+            }
+
+            // 5. 其他情况，作为相对路径处理
+            return `${API_ORIGIN}/${u}`;
+        }
+
+        // 模拟后端数据转换
+        function convertBackendData(records) {
+            return records.map(record => ({
+                id: record.taskId,
+                imageUrl: record.resultUrl || '',
+                title: record.prompt ? String(record.prompt).substring(0, 50) + '...' : '无标题',
+                authorName: record.username,
+                authorAvatar: undefined,
+                likeCount: record.likeCount || 0,
+                isLiked: record.isLiked || false,
+                width: 512,
+                height: 512,
+                createTime: record.createTime
+            }));
+        }
+
+        async function testFrontendLogic() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result loading">正在测试前端逻辑...</div>';
+
+            try {
+                // 1. 测试 API 调用
+                const response = await fetch('http://localhost:8080/api/community/list?page=1&pageSize=3');
+                const backendData = await response.json();
+
+                let html = `<div class="result success">✅ 后端 API 调用成功</div>`;
+                html += `<div class="result">后端响应: ${JSON.stringify(backendData, null, 2)}</div>`;
+
+                if (backendData.code === 200 && backendData.data && backendData.data.records) {
+                    // 2. 测试数据转换
+                    const convertedData = convertBackendData(backendData.data.records);
+                    html += `<div class="result success">✅ 数据转换成功，转换了 ${convertedData.length} 条记录</div>`;
+                    html += `<div class="result">转换后的数据: ${JSON.stringify(convertedData, null, 2)}</div>`;
+
+                    // 3. 测试 URL 解析
+                    convertedData.forEach((post, index) => {
+                        if (post.imageUrl) {
+                            const resolvedUrl = resolveMediaUrl(post.imageUrl);
+                            html += `<div class="result">记录 ${index + 1} 图片URL: ${post.imageUrl} → ${resolvedUrl}</div>`;
+                        }
+                    });
+                } else {
+                    html += `<div class="result error">❌ 后端数据格式不正确</div>`;
+                }
+
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result error">❌ 测试失败: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载时自动测试
+        window.addEventListener('load', () => {
+            setTimeout(testFrontendLogic, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片URL解析测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-case { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .input { color: blue; }
+        .output { color: green; }
+        img { max-width: 200px; max-height: 200px; border: 1px solid #ddd; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>图片URL解析测试</h1>
+    <p>测试 resolveMediaUrl 函数是否正确将各种格式的URL转换为可访问的完整URL</p>
+
+    <div id="test-results"></div>
+
+    <script type="module">
+        // 模拟 resolveMediaUrl 函数
+        const API_ORIGIN = 'http://localhost:8080';
+
+        function resolveMediaUrl(url) {
+            if (!url || typeof url !== 'string') {
+                return '';
+            }
+            const u = url.trim();
+            if (!u) {
+                return '';
+            }
+
+            // 1. 如果已是完整 URL，直接返回
+            if (/^https?:\/\//i.test(u)) {
+                return u;
+            }
+
+            // 2. 处理协议相对 URL
+            if (u.startsWith('//')) {
+                return `${window.location.protocol}${u}`;
+            }
+
+            // 3. 🚨 关键修复：所有相对路径都必须指向后端服务器！
+            if (u.startsWith('/')) {
+                return `${API_ORIGIN}${u}`;
+            }
+
+            // 4. 处理本地路径 (D:/aip_storage/outputs/xxx.png → /api/files/xxx.png)
+            if (/^[a-z]:[/\\]/i.test(u)) {
+                const cleanPath = u.replace(/\\/g, '/').replace(/^[a-z]:[/]*aip_storage\/(?:outputs|inputs)\//i, '');
+                return `${API_ORIGIN}/api/files/${cleanPath}`;
+            }
+
+            // 5. 其他情况，作为相对路径处理
+            return `${API_ORIGIN}/${u}`;
+        }
+
+        // 测试用例
+        const testCases = [
+            { input: '/api/files/test.png', expected: 'http://localhost:8080/api/files/test.png', desc: '相对路径（后端映射）' },
+            { input: 'D:/aip_storage/outputs/test.png', expected: 'http://localhost:8080/api/files/test.png', desc: '本地路径（outputs）' },
+            { input: 'D:\\aip_storage\\inputs\\test.png', expected: 'http://localhost:8080/api/files/test.png', desc: '本地路径（inputs，反斜杠）' },
+            { input: 'http://localhost:8080/api/files/test.png', expected: 'http://localhost:8080/api/files/test.png', desc: '完整URL' },
+            { input: '/other/path.png', expected: 'http://localhost:8080/other/path.png', desc: '其他相对路径' },
+            { input: 'relative.png', expected: 'http://localhost:8080/relative.png', desc: '相对路径（无斜杠）' },
+        ];
+
+        const resultsDiv = document.getElementById('test-results');
+
+        testCases.forEach((testCase, index) => {
+            const result = resolveMediaUrl(testCase.input);
+            const isPass = result === testCase.expected;
+
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            div.innerHTML = `
+                <h3>测试 ${index + 1}: ${testCase.desc}</h3>
+                <p><strong>输入:</strong> <span class="input">${testCase.input}</span></p>
+                <p><strong>输出:</strong> <span class="output">${result}</span></p>
+                <p><strong>期望:</strong> <span class="${isPass ? 'output' : 'input'}">${testCase.expected}</span></p>
+                <p><strong>结果:</strong> <span style="color: ${isPass ? 'green' : 'red'}">${isPass ? '✅ 通过' : '❌ 失败'}</span></p>
+                ${isPass ? `<img src="${result}" alt="测试图片" onerror="this.style.display='none'">` : ''}
+            `;
+            resultsDiv.appendChild(div);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+{
+  "prompt": {
+    "5": {
+      "class_type": "smZ Settings",
+      "inputs": {
+        "*": [
+          "12",
+          0
+        ],
+        "Prompt word wrap length limit": 20,
+        "enable_emphasis": true,
+        "RNG": "gpu",
+        "disable_nan_check": true,
+        "eta": 1,
+        "s_churn": 0,
+        "s_tmin": 0,
+        "s_tmax": 0,
+        "s_noise": 1,
+        "ENSD": 0,
+        "skip_early_cond": 0,
+        "sgm_noise_multiplier": false,
+        "upcast_sampling": true,
+        "NGMS": 0,
+        "NGMS all steps": false,
+        "pad_cond_uncond": false,
+        "batch_cond_uncond": true,
+        "Use previous prompt editing timelines": true,
+        "Use CFGDenoiser": false,
+        "debug": false
+      }
+    },
+    "6": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "5",
+          0
+        ],
+        "positive": [
+          "20",
+          0
+        ],
+        "negative": [
+          "20",
+          1
+        ],
+        "latent_image": [
+          "7",
+          0
+        ],
+        "seed": 812570643914567,
+        "steps": 35,
+        "cfg": 6,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "denoise": 1
+      }
+    },
+    "1": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "illustriousXL_v01.safetensors"
+      }
+    },
+    "2": {
+      "class_type": "CLIPSetLastLayer",
+      "inputs": {
+        "clip": [
+          "1",
+          1
+        ],
+        "stop_at_clip_layer": -2
+      }
+    },
+    "11": {
+      "class_type": "LoraLoader",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "clip": [
+          "2",
+          0
+        ],
+        "lora_name": "Yinlinx IL v22.safetensors",
+        "strength_model": 0.8,
+        "strength_clip": 0.8
+      }
+    },
+    "3": {
+      "class_type": "smZ CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "12",
+          1
+        ],
+        "text": "masterpiece,best quality,amazing quality,very aesthetic,absurdres,newest,scenery, \n1girl, yinlinx, echoset1 outfit, purple eyes,long hair, ponytail,  red hair, circle facial mark, hairband, upper body, floating hair, colorful theme, evil smile, closed mouth, relaxed eyes, hand up, japanese lantern, portrait, dynamic pose,  magical atmosphere, swirling energy, light waves, sparkling particles,paper lantern,mountain, dynamic lighting, ambient light,\n ",
+        "parser": "A1111",
+        "mean_normalization": true,
+        "multi_conditioning": true,
+        "use_old_emphasis_implementation": false,
+        "with_SDXL": false,
+        "ascore": 6,
+        "width": 1024,
+        "height": 1024,
+        "crop_w": 0,
+        "crop_h": 0,
+        "target_width": 1024,
+        "target_height": 1024,
+        "text_g": "",
+        "text_l": "",
+        "smZ_steps": 1
+      }
+    },
+    "4": {
+      "class_type": "smZ CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "12",
+          1
+        ],
+        "text": "lowres, (worst quality, bad quality:1.2), bad anatomy, sketch, jpeg artifacts, deformed, bad hand,  patreon username, web address, signature, watermark, text, logo, artist name, ai-generated,",
+        "parser": "A1111",
+        "mean_normalization": true,
+        "multi_conditioning": true,
+        "use_old_emphasis_implementation": false,
+        "with_SDXL": false,
+        "ascore": 6,
+        "width": 1024,
+        "height": 1024,
+        "crop_w": 0,
+        "crop_h": 0,
+        "target_width": 1024,
+        "target_height": 1024,
+        "text_g": "",
+        "text_l": "",
+        "smZ_steps": 1
+      }
+    },
+    "13": {
+      "class_type": "UpscaleModelLoader",
+      "inputs": {
+        "model_name": "RealESRGAN_x2plus.pth"
+      }
+    },
+    "16": {
+      "class_type": "MaskToSEGS",
+      "inputs": {
+        "mask": [
+          "17",
+          1
+        ],
+        "combined": false,
+        "crop_factor": 3,
+        "bbox_fill": false,
+        "drop_size": 10,
+        "contour_fill": false
+      }
+    },
+    "15": {
+      "class_type": "SEGSUpscaler",
+      "inputs": {
+        "image": [
+          "8",
+          0
+        ],
+        "segs": [
+          "16",
+          0
+        ],
+        "model": [
+          "12",
+          0
+        ],
+        "clip": [
+          "12",
+          1
+        ],
+        "vae": [
+          "9",
+          0
+        ],
+        "positive": [
+          "3",
+          0
+        ],
+        "negative": [
+          "4",
+          0
+        ],
+        "upscale_model_opt": [
+          "13",
+          0
+        ],
+        "rescale_factor": 2,
+        "resampling_method": "lanczos",
+        "supersample": "true",
+        "rounding_modulus": 8,
+        "seed": 770558855060167,
+        "steps": 30,
+        "cfg": 8,
+        "sampler_name": "euler",
+        "scheduler": "normal",
+        "denoise": 0.5,
+        "feather": 5,
+        "inpaint_model": false,
+        "noise_mask_feather": 20
+      }
+    },
+    "18": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "15",
+          0
+        ],
+        "filename_prefix": "yinlin"
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "6",
+          0
+        ],
+        "vae": [
+          "9",
+          0
+        ]
+      }
+    },
+    "20": {
+      "class_type": "ControlNetApplyAdvanced",
+      "inputs": {
+        "positive": [
+          "3",
+          0
+        ],
+        "negative": [
+          "4",
+          0
+        ],
+        "control_net": [
+          "19",
+          0
+        ],
+        "image": [
+          "21",
+          0
+        ],
+        "vae": [
+          "9",
+          0
+        ],
+        "strength": 1,
+        "start_percent": 0,
+        "end_percent": 1
+      }
+    },
+    "19": {
+      "class_type": "ControlNetLoader",
+      "inputs": {
+        "control_net_name": "controlnet-union-sdxl-1.0_promax.safetensors"
+      }
+    },
+    "21": {
+      "class_type": "CannyEdgePreprocessor",
+      "inputs": {
+        "image": [
+          "17",
+          0
+        ],
+        "low_threshold": 100,
+        "high_threshold": 200,
+        "resolution": 512
+      }
+    },
+    "9": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "sdxl_vae_fp16_fix.safetensors"
+      }
+    },
+    "22": {
+      "class_type": "ImageScaleToTotalPixels",
+      "inputs": {
+        "image": [
+          "21",
+          0
+        ],
+        "upscale_method": "nearest-exact",
+        "megapixels": 1
+      }
+    },
+    "7": {
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": [
+          "23",
+          0
+        ],
+        "height": [
+          "23",
+          1
+        ],
+        "batch_size": 1
+      }
+    },
+    "23": {
+      "class_type": "GetImageSize+",
+      "inputs": {
+        "image": [
+          "22",
+          0
+        ]
+      }
+    },
+    "10": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "8",
+          0
+        ],
+        "filename_prefix": "ComfyUI"
+      }
+    },
+    "17": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "e4efe55795d0f7847b41b58597af7282.jpg"
+      }
+    },
+    "12": {
+      "class_type": "LoraLoader",
+      "inputs": {
+        "model": [
+          "11",
+          0
+        ],
+        "clip": [
+          "11",
+          1
+        ],
+        "lora_name": "CunnyFunkyXL_NB11_lokr_V6311P.safetensors",
+        "strength_model": 0.8,
+        "strength_clip": 1
+      }
+    }
+  }
+}

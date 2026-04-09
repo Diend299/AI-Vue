@@ -1,0 +1,235 @@
+{
+  "14": {
+    "inputs": {
+      "samples": [
+        "32",
+        0
+      ],
+      "vae": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "24": {
+    "inputs": {
+      "lora_name": "768429_saitou_asuka.safetensors",
+      "strength_model": 0.8,
+      "strength_clip": 1,
+      "model": [
+        "54",
+        0
+      ],
+      "clip": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "加载LoRA"
+    }
+  },
+  "29": {
+    "inputs": {
+      "image": "dc5cbc77-8d49-4153-ad2a-4a195dbab4da.png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "30": {
+    "inputs": {
+      "text": "A cinematic, hyper-realistic portrait of asuka walking along a misty suburban path in winter. She is wearing a traditional Japanese school uniform (seifuku) paired with a thick, textured red and grey plaid wool scarf wrapped snugly around her neck. Her expression is soft and pensive, with a faint hint of breath mist in the cold air. The lighting is soft, diffused overcast daylight that emphasizes the \"translucency\" of her fair skin. Tiny droplets of mist are visible on the fibers of her scarf and her dark hair. Deep depth of field, blurred background of a quiet street and bare trees. Photorealistic, 50mm lens, f/2.0, nostalgic and emotional atmosphere, 8k.\nA masterpiece portrait of asuka in a crystalline ice palace at sunset. She is wearing a heavy black silk robe with white fur trim, adorned with brilliant golden jewelry and emerald pendants. She stands next to a flickering blue flame inside a crystal lantern. The atmosphere is filled with frozen mist and sparkling ice crystals caught in the air. Lighting: The warm orange glow of the sunset pierces through the translucent ice walls, contrasting with the cool blue shadows and the golden firelight on her face. Photorealistic skin texture with subtle frost on her eyebrows, 8k, raw photo, majestic and elegant, sharp focus.\n",
+      "clip": [
+        "24",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "31": {
+    "inputs": {
+      "text": "nsfw,",
+      "clip": [
+        "24",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "32": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": 44008957937691,
+      "steps": 40,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "start_at_step": 0,
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "52",
+        0
+      ],
+      "positive": [
+        "44",
+        0
+      ],
+      "negative": [
+        "31",
+        0
+      ],
+      "latent_image": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "33": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "34": {
+    "inputs": {
+      "width": 1344,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "38": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "44": {
+    "inputs": {
+      "guidance": 2.5,
+      "conditioning": [
+        "30",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Flux引导"
+    }
+  },
+  "50": {
+    "inputs": {
+      "provider": "CPU"
+    },
+    "class_type": "PulidFluxInsightFaceLoader",
+    "_meta": {
+      "title": "Load InsightFace (PuLID Flux)"
+    }
+  },
+  "51": {
+    "inputs": {},
+    "class_type": "PulidFluxEvaClipLoader",
+    "_meta": {
+      "title": "Load Eva Clip (PuLID Flux)"
+    }
+  },
+  "52": {
+    "inputs": {
+      "weight": 0.6,
+      "start_at": 0,
+      "end_at": 1,
+      "fusion": "mean",
+      "fusion_weight_max": 1,
+      "fusion_weight_min": 0,
+      "train_step": 1000,
+      "use_gray": true,
+      "model": [
+        "24",
+        0
+      ],
+      "pulid_flux": [
+        "53",
+        0
+      ],
+      "eva_clip": [
+        "51",
+        0
+      ],
+      "face_analysis": [
+        "50",
+        0
+      ],
+      "image": [
+        "29",
+        0
+      ]
+    },
+    "class_type": "ApplyPulidFlux",
+    "_meta": {
+      "title": "Apply PuLID Flux"
+    }
+  },
+  "53": {
+    "inputs": {
+      "pulid_file": "pulid_flux_v0.9.1.safetensors"
+    },
+    "class_type": "PulidFluxModelLoader",
+    "_meta": {
+      "title": "Load PuLID Flux Model"
+    }
+  },
+  "54": {
+    "inputs": {
+      "unet_name": "flux1-dev-unet-fp8-e4m3fn.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "55": {
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "双CLIP加载器"
+    }
+  }
+}
