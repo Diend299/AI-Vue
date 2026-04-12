@@ -63,16 +63,24 @@
             :tasks="historyList" 
             :now-tick="nowTick"
             @open-image="openImageTab"
+            @open-detail="openTaskDetail"
           />
         </el-card>
       </div>
-    </main>
+  </main>
+
+    <!-- 任务详情弹窗 -->
+    <TaskDetailModal
+      v-model="detailModalVisible"
+      :task-id="selectedTaskId"
+      @fill-form="handleFillForm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onBeforeUnmount, onMounted, reactive, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
   getTaskListApi, 
@@ -89,9 +97,57 @@ import { useAuthStore } from '@/stores/auth'
 import TaskForm, { type SelectedLoRA } from './components/TaskForm.vue'
 import TaskHistory from './components/TaskHistory.vue'
 import ImagePreview from './components/ImagePreview.vue'
+import TaskDetailModal from '@/views/Community/components/TaskDetailModal.vue'
 
 const auth = useAuthStore()
+
+// 详情弹窗状态
+const detailModalVisible = ref(false)
+const selectedTaskId = ref<string | null>(null)
+
+// 打开任务详情弹窗
+function openTaskDetail(taskId: string) {
+  selectedTaskId.value = taskId
+  detailModalVisible.value = true
+}
+
+// 处理从详情弹窗回填表单
+function handleFillForm(payload: { prompt: string; modelType: string; isUseLLM: boolean; loras: SelectedLoRA[] }) {
+  // 填充基础参数
+  prompt.value = payload.prompt
+  modelType.value = payload.modelType as 'SDXL' | 'FLUX'
+  isUseLLM.value = payload.isUseLLM
+  
+  // 填充LoRA参数
+  if (payload.loras && payload.loras.length > 0) {
+    // 等待LoRA选项加载完成后回填
+    const tryFillLoRAs = () => {
+      if (loraOptions.value.length > 0) {
+        const validLoRAs = payload.loras.map(item => {
+          const match = loraOptions.value.find(opt => 
+            String(opt.id) === String(item.id) || opt.name === item.id
+          )
+          return {
+            id: match ? match.id : item.id,
+            strength: item.strength || 0.75
+          } as SelectedLoRA
+        }).filter(item => item.id)
+        
+        if (validLoRAs.length > 0) {
+          selectedLoRAs.value = validLoRAs
+        }
+      } else {
+        setTimeout(tryFillLoRAs, 300)
+      }
+    }
+    tryFillLoRAs()
+  }
+  
+  ElMessage.success('任务参数已回填到表单')
+}
+
 const router = useRouter()
+const route = useRoute()
 
 // 表单状态
 const submitLoading = ref(false)
@@ -260,6 +316,82 @@ watch(modelType, () => {
   loadLoRAOptions()
 }, { immediate: true })
 
+// 👉 从URL参数预填充表单（支持从社区复制的任务参数）
+function prefillFromQuery() {
+  const { prompt: queryPrompt, modelType: queryModel, isUseLLM: queryLLM, loras: queryLoRAs } = route.query
+
+  if (queryPrompt && typeof queryPrompt === 'string') {
+    prompt.value = queryPrompt
+    ElMessage.success('已自动填充提示词')
+  }
+
+  if (queryModel && (queryModel === 'SDXL' || queryModel === 'FLUX')) {
+    modelType.value = queryModel
+  }
+
+  if (queryLLM === 'true') {
+    isUseLLM.value = true
+  }
+
+  // 处理LoRA参数
+  if (queryLoRAs && typeof queryLoRAs === 'string') {
+    try {
+      const parsedLoRAs = JSON.parse(queryLoRAs) as SelectedLoRA[]
+      console.log('[prefillFromQuery] 解析到的LoRA参数:', parsedLoRAs)
+      if (Array.isArray(parsedLoRAs) && parsedLoRAs.length > 0) {
+        // 等待LoRA选项加载完成后再设置
+        const trySetLoRAs = () => {
+          if (loraOptions.value.length > 0) {
+            console.log('[prefillFromQuery] 可用LoRA选项:', loraOptions.value.map(o => ({ id: o.id, name: o.name })))
+            
+            // 直接填充所有传入的LoRA，不进行严格ID过滤
+            // 因为复制的LoRA可能来自其他模型类别，或者ID类型可能不同（string vs number）
+            const filledLoRAs = parsedLoRAs.map(item => {
+              // 尝试查找匹配的LoRA（支持类型强制转换匹配）
+              const match = loraOptions.value.find(opt => 
+                String(opt.id) === String(item.id) || opt.name === item.id
+              )
+              return {
+                id: match ? match.id : item.id,
+                strength: item.strength || 0.75
+              } as SelectedLoRA
+            }).filter(item => item.id) // 过滤掉没有id的
+            
+            if (filledLoRAs.length > 0) {
+              selectedLoRAs.value = filledLoRAs
+              ElMessage.success(`已填充 ${filledLoRAs.length} 个LoRA模型`)
+            } else {
+              console.warn('[prefillFromQuery] 未找到有效的LoRA模型')
+            }
+          } else {
+            // 如果LoRA选项还没加载，稍后重试（最多重试10次）
+            let retryCount = 0
+            const tryAgain = () => {
+              if (loraOptions.value.length > 0) {
+                trySetLoRAs()
+              } else if (retryCount < 10) {
+                retryCount++
+                setTimeout(tryAgain, 300)
+              } else {
+                console.error('[prefillFromQuery] LoRA选项加载超时')
+              }
+            }
+            setTimeout(tryAgain, 300)
+          }
+        }
+        trySetLoRAs()
+      }
+    } catch (e) {
+      console.error('[Studio] 解析LoRA参数失败:', e)
+    }
+  }
+
+  // 清除URL参数（避免刷新页面时重复填充）
+  if (queryPrompt || queryModel || queryLLM || queryLoRAs) {
+    router.replace({ path: '/studio', query: {} })
+  }
+}
+
 function openImageTab(url: string) {
   if (url) {
     window.open(url, '_blank', 'noopener,noreferrer')
@@ -277,6 +409,9 @@ onMounted(() => {
   timeTickTimer = window.setInterval(() => {
     nowTick.value++
   }, 60_000)
+  
+  // 从URL参数预填充表单
+  prefillFromQuery()
 })
 
 onBeforeUnmount(() => {

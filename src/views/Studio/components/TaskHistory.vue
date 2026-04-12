@@ -7,6 +7,8 @@
         v-for="(row, index) in displayTasks" 
         :key="taskRowKey(row, index)" 
         class="history-card"
+        @click="handleCardClick(row.taskId)"
+        style="cursor: pointer;"
       >
         <div class="thumb-wrap">
           <el-image
@@ -14,8 +16,6 @@
             class="thumb"
             :src="getImageUrl(row.resultUrl)"
             fit="cover"
-            :preview-src-list="[getImageUrl(row.resultUrl)]"
-            preview-teleported
           />
           <div v-else class="thumb-placeholder">
             <span>{{ statusLabel(row.status) }}</span>
@@ -30,7 +30,7 @@
             >{{ relativeTimeLabel(row) }}</time>
           </div>
           <p class="prompt-line" :title="String(row.prompt ?? '')">{{ row.prompt || '（无提示词）' }}</p>
-          <div class="card-foot">
+          <div class="card-foot" @click.stop>
             <el-tag size="small" :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
             <el-button
               v-if="getImageUrl(row.resultUrl)"
@@ -61,7 +61,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   openImage: [url: string]
+  openDetail: [taskId: string]
 }>()
+
+// 点击任务卡片打开详情
+function handleCardClick(taskId: string | undefined) {
+  if (taskId) {
+    emit('openDetail', taskId)
+  }
+}
 
 // 排序后的任务列表（使用计算属性确保响应式更新）
 const displayTasks = computed(() => {

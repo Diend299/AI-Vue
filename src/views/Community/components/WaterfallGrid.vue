@@ -12,6 +12,7 @@
       :post="post"
       @load="resizeAllGridItems"
       @like="handleLike"
+      @click="handleClick"
     />
   </div>
 </template>
@@ -32,7 +33,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['like'])
+const emit = defineEmits(['like', 'click'])
 
 const gridRef = ref<HTMLElement | null>(null)
 
@@ -58,6 +59,11 @@ const resizeAllGridItems = () => {
 // 转发点赞事件
 const handleLike = (post: CommunityPost) => {
   emit('like', post)
+}
+
+// 转发点击事件
+const handleClick = (post: CommunityPost) => {
+  emit('click', post)
 }
 
 // 监听窗口变化

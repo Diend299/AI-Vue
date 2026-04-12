@@ -1,5 +1,5 @@
 <template>
-  <div class="post-card">
+  <div class="post-card" @click="handleCardClick">
     <div class="post-content">
       <!-- 图片展示 -->
       <div class="image-wrapper">
@@ -7,7 +7,7 @@
           :src="resolveMediaUrl(post.imageUrl)" 
           fit="cover" 
           lazy
-          :preview-src-list="[resolveMediaUrl(post.imageUrl)]"
+          :preview-src-list="[]"
           @load="handleImageLoad"
           class="post-image"
         >
@@ -21,27 +21,25 @@
         
         <!-- 悬浮遮罩层 -->
         <div class="overlay">
-          <div class="author-info">
-            <el-avatar :size="24" :src="post.authorAvatar || ''">{{ post.authorName ? post.authorName.charAt(0) : '?' }}</el-avatar>
-            <span class="author-name">{{ post.authorName || '匿名用户' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 底部交互区 -->
-      <div class="post-info">
-        <div class="post-title">{{ post.title }}</div>
-        <div class="post-actions">
-          <div 
-            class="like-btn" 
-            :class="{ 'is-liked': post.isLiked }"
-            @click.stop="handleLike"
-          >
-            <el-icon :size="18">
-              <StarFilled v-if="post.isLiked" />
-              <Star v-else />
-            </el-icon>
-            <span>{{ post.totalLikes }}</span>
+          <div class="overlay-content">
+            <div class="author-info">
+              <el-avatar :size="24" :src="post.authorAvatar || ''">{{ post.authorName ? post.authorName.charAt(0) : '?' }}</el-avatar>
+              <span class="author-name">{{ post.authorName || '匿名用户' }}</span>
+            </div>
+            <div class="overlay-actions">
+              <div 
+                class="like-btn" 
+                :class="{ 'is-liked': post.isLiked }"
+                @click.stop="handleLike"
+              >
+                <el-icon :size="16">
+                  <StarFilled v-if="post.isLiked" />
+                  <Star v-else />
+                </el-icon>
+                <span>{{ post.totalLikes }}</span>
+              </div>
+              <el-icon :size="16" class="view-icon"><View /></el-icon>
+            </div>
           </div>
         </div>
       </div>
@@ -50,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { Star, StarFilled } from '@element-plus/icons-vue'
+import { Star, StarFilled, View } from '@element-plus/icons-vue'
 import { resolveMediaUrl } from '@/utils/mediaUrl'
 import type { CommunityPost } from '@/api/community'
 
@@ -61,6 +59,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   like: [post: CommunityPost]
   load: []
+  click: [post: CommunityPost]
 }>()
 
 const handleImageLoad = () => {
@@ -69,6 +68,10 @@ const handleImageLoad = () => {
 
 const handleLike = () => {
   emit('like', props.post)
+}
+
+const handleCardClick = () => {
+  emit('click', props.post)
 }
 </script>
 
@@ -130,10 +133,18 @@ const handleLike = () => {
   opacity: 1;
 }
 
+.overlay-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .author-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .author-name {
@@ -141,23 +152,10 @@ const handleLike = () => {
   color: #fff;
 }
 
-.post-info {
-  padding: 12px;
-}
-
-.post-title {
-  font-size: 0.95rem;
-  color: #e2e4e9;
-  margin-bottom: 8px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.post-actions {
+.overlay-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
 }
 
 .like-btn {
@@ -165,17 +163,23 @@ const handleLike = () => {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  color: #8f95a3;
+  color: #fff;
   transition: all 0.2s;
   padding: 4px 8px;
   border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .like-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .like-btn.is-liked {
   color: #ff4d4f;
+}
+
+.view-icon {
+  color: #fff;
+  opacity: 0.8;
 }
 </style>

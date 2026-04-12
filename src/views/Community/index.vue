@@ -22,36 +22,55 @@
     >
       <WaterfallGrid 
         :posts="posts" 
-        :loading="loading" 
+        :loading="loading"
         @like="handleLike"
+        @click="handlePostClick"
       />
     </el-scrollbar>
 
-    <div v-if="noMore && posts.length > 0" class="no-more">—— 已经到底啦 ——</div>
+    <div v-if="finished && posts.length > 0" class="no-more">—— 已经到底啦 ——</div>
+
+    <!-- 任务详情弹窗 -->
+    <TaskDetailModal
+      v-model="detailModalVisible"
+      :task-id="selectedTaskId"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useRouter } from 'vue-router' // 👈 引入路由
+import { useRouter } from 'vue-router'
 import { getCommunityListApi, likePostApi, type CommunityPost, type BackendCommunityPost } from '@/api/community'
 import { type ApiResult } from '@/api/aigc'
 import WaterfallGrid from './components/WaterfallGrid.vue'
+import TaskDetailModal from './components/TaskDetailModal.vue'
 
 // 路由实例
 const router = useRouter()
 
 // 状态管理
 const posts = ref<CommunityPost[]>([])
-const loading = ref(false)
+const loading = ref(false)      // 加载中锁：防止重复请求
+const finished = ref(false)     // 全部加载完标志
 const page = ref(1)
-const noMore = ref(false)
 const infiniteScrollDistance = 200
+const loadedIds = ref<Set<string | number>>(new Set()) // 已加载ID集合，用于去重
+
+// 详情弹窗状态
+const detailModalVisible = ref(false)
+const selectedTaskId = ref<string | null>(null)
 
 // 👉 跳转到创作工作台
 const goToStudio = () => {
   router.push({ path: '/studio' })
+}
+
+// 👉 点击帖子打开详情弹窗
+const handlePostClick = (post: CommunityPost) => {
+  selectedTaskId.value = post.id
+  detailModalVisible.value = true
 }
 
 // 滚动加载处理
@@ -62,19 +81,36 @@ const handleScroll = ({ scrollTop }: { scrollTop: number; scrollLeft: number }) 
   const { scrollHeight, clientHeight } = scrollbar
   const distanceToBottom = scrollHeight - scrollTop - clientHeight
   
-  if (distanceToBottom < infiniteScrollDistance && !loading.value && !noMore.value) {
+  // 核心防护1：如果正在加载或者已经加载完了，直接拒绝请求
+  if (distanceToBottom < infiniteScrollDistance && !loading.value && !finished.value) {
     loadData()
   }
 }
 
 // 加载数据
 const loadData = async () => {
-  if (loading.value || noMore.value) return
+  // 核心防护1：如果正在加载或者已经加载完了，直接拒绝请求
+  if (loading.value || finished.value) {
+    console.log('[Community] 加载被拒绝:', { loading: loading.value, finished: finished.value })
+    return
+  }
+  
   loading.value = true
+  console.log('[Community] 开始加载第', page.value, '页数据')
+  
   try {
     const res: ApiResult<{ records: BackendCommunityPost[], total: number }> = await getCommunityListApi({ page: page.value, pageSize: 20 })
     if (res.code === 200) {
-      const newList: CommunityPost[] = res.data.records.map((record: BackendCommunityPost) => ({
+      const records = res.data.records || []
+      
+      // 后端返回空数组，说明没有更多数据了
+      if (records.length === 0) {
+        finished.value = true
+        console.log('[Community] 数据已全部加载完毕')
+        return
+      }
+      
+      const newList: CommunityPost[] = records.map((record: BackendCommunityPost) => ({
         id: record.taskId,
         imageUrl: record.resultUrl || '',
         title: record.prompt ? String(record.prompt).substring(0, 50) + '...' : '无标题',
@@ -87,10 +123,30 @@ const loadData = async () => {
         createTime: record.createTime
       }))
 
-      posts.value.push(...newList)
+      // 去重处理：过滤掉已经加载过的数据（防止网络抖动导致的重复数据）
+      const uniqueList = newList.filter(post => {
+        if (loadedIds.value.has(post.id)) {
+          console.log('[Community] 去重过滤:', post.id)
+          return false
+        }
+        return true
+      })
+      
+      // 将新数据的ID加入已加载集合
+      uniqueList.forEach(post => {
+        loadedIds.value.add(post.id)
+      })
+      
+      // 只有有新数据时才添加到列表
+      if (uniqueList.length > 0) {
+        posts.value.push(...uniqueList)
+        console.log('[Community] 成功加载', uniqueList.length, '条新数据')
+      }
 
-      if (newList.length < 20) {
-        noMore.value = true
+      // 判断是否全部加载完毕
+      if (records.length < 20 || uniqueList.length === 0) {
+        finished.value = true
+        console.log('[Community] 数据已全部加载完毕')
       } else {
         page.value++
       }
@@ -101,6 +157,7 @@ const loadData = async () => {
       })
     }
   } catch (error) {
+    console.error('[Community] 加载失败:', error)
     ElMessage.error('获取社区内容失败')
   } finally {
     loading.value = false
